@@ -691,9 +691,17 @@ class MainWindow:
         """移除選中的檔案"""
         selection = self.file_listbox.curselection()
         if selection:
-            index = selection[0]
-            del self.selected_files[index]
-            self.update_file_listbox()
+            try:
+                index = selection[0]
+                if 0 <= index < len(self.selected_files):
+                    del self.selected_files[index]
+                    self.update_file_listbox()
+                else:
+                    messagebox.showwarning("提示", "選中的檔案索引無效")
+            except Exception as e:
+                messagebox.showerror("錯誤", f"移除檔案時發生錯誤：{str(e)}")
+        else:
+            messagebox.showinfo("提示", "請先選擇要移除的檔案")
     
     def clear_files(self):
         """清空檔案列表"""
@@ -724,7 +732,7 @@ class MainWindow:
         # 獲取計劃名稱
         name = self.schedule_name_var.get().strip()
         if not name:
-            name = f"播放計劃 {self.next_schedule_id}"
+            name = f"播放計劃{self.next_schedule_id}"
         
         # 創建播放計劃
         schedule = {
@@ -856,42 +864,63 @@ class MainWindow:
             messagebox.showinfo("提示", "請先選擇一個播放計劃")
             return
         
-        item = self.schedule_tree.item(selection[0])
-        schedule_id = int(item['tags'][0])
-        
-        # 找到對應的計劃
-        schedule = None
-        for s in self.schedules:
-            if s['id'] == schedule_id:
-                schedule = s
-                break
-        
-        if not schedule:
-            return
-        
-        # 測試播放
-        valid_files = [f for f in schedule['files'] if os.path.exists(f)]
-        if not valid_files:
-            messagebox.showwarning("錯誤", "計劃中的檔案不存在")
-            return
-        
-        self.player.play_files(valid_files)
-        messagebox.showinfo("提示", "測試播放已開始")
+        try:
+            item = self.schedule_tree.item(selection[0])
+            if not item['tags']:
+                messagebox.showerror("錯誤", "無法獲取計劃資訊")
+                return
+            schedule_id = int(item['tags'][0])
+            
+            # 找到對應的計劃
+            schedule = None
+            for s in self.schedules:
+                if s['id'] == schedule_id:
+                    schedule = s
+                    break
+            
+            if not schedule:
+                messagebox.showerror("錯誤", "找不到對應的播放計劃")
+                return
+            
+            # 檢查檔案
+            if not schedule.get('files'):
+                messagebox.showwarning("錯誤", "計劃中沒有音訊檔案")
+                return
+            
+            # 測試播放
+            valid_files = [f for f in schedule['files'] if os.path.exists(f)]
+            if not valid_files:
+                messagebox.showwarning("錯誤", "計劃中的檔案不存在或無法存取")
+                return
+            
+            self.player.play_files(valid_files)
+            messagebox.showinfo("提示", "測試播放已開始")
+        except (ValueError, IndexError, KeyError) as e:
+            messagebox.showerror("錯誤", f"測試播放時發生錯誤：{str(e)}")
     
     def _on_schedule_trigger(self, schedule):
         """播放計劃觸發時的回調"""
-        print(f"播放計劃觸發: {schedule['name']}")
-        
-        # 通知使用者
-        self.notifier.notify_schedule_triggered(schedule['name'])
-        
-        # 開始播放
-        valid_files = [f for f in schedule['files'] if os.path.exists(f)]
-        if valid_files:
-            self.player.play_files(valid_files)
-            self.status_label.config(text=f"正在播放：{schedule['name']}")
-        else:
-            self.status_label.config(text=f"播放失敗：{schedule['name']} - 檔案不存在")
+        try:
+            schedule_name = schedule.get('name', '未知計劃')
+            print(f"播放計劃觸發: {schedule_name}")
+            
+            # 通知使用者
+            self.notifier.notify_schedule_triggered(schedule_name)
+            
+            # 開始播放
+            files = schedule.get('files', [])
+            if files:
+                valid_files = [f for f in files if os.path.exists(f)]
+                if valid_files:
+                    self.player.play_files(valid_files)
+                    self.status_label.config(text=f"正在播放：{schedule_name}")
+                else:
+                    self.status_label.config(text=f"播放失敗：{schedule_name} - 檔案不存在")
+            else:
+                self.status_label.config(text=f"播放失敗：{schedule_name} - 沒有音訊檔案")
+        except Exception as e:
+            print(f"播放計劃觸發錯誤: {e}")
+            self.status_label.config(text=f"播放錯誤：{str(e)}")
     
     def _on_playback_start(self, file_path):
         """播放開始回調"""

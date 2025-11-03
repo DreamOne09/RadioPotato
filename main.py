@@ -4,7 +4,7 @@
 本程式由僑務委員會外交替代役 李孟一老師所開發
 如有問題可用line聯繫：dreamone09
 
-GitHub: https://github.com/[YOUR_USERNAME]/RadioPotato
+GitHub: https://github.com/DreamOne09/RadioPotato
 """
 
 import sys

@@ -33,11 +33,13 @@ class Storage:
         try:
             with open(self.schedule_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                # 驗證檔案路徑是否存在
-                for schedule in data.get('schedules', []):
-                    for file_path in schedule.get('files', []):
-                        if not os.path.exists(file_path):
-                            schedule.setdefault('invalid_files', []).append(file_path)
+                # 驗證檔案路徑是否存在（延遲驗證，避免載入時卡頓）
+                # 只在需要時驗證，不阻塞載入過程
+                schedules = data.get('schedules', [])
+                for schedule in schedules:
+                    # 標記需要驗證，但不立即執行（由UI層在需要時驗證）
+                    if 'invalid_files' not in schedule:
+                        schedule['invalid_files'] = []
                 return data
         except (json.JSONDecodeError, IOError) as e:
             print(f"載入播放計劃失敗: {e}")

@@ -60,11 +60,23 @@ class Scheduler:
     
     def _scheduler_worker(self):
         """排程器工作執行緒"""
+        # 星期名映射（使用weekday()數字避免語言依賴）
+        weekday_map = {
+            0: 'monday',      # 週一
+            1: 'tuesday',     # 週二
+            2: 'wednesday',   # 週三
+            3: 'thursday',    # 週四
+            4: 'friday',      # 週五
+            5: 'saturday',    # 週六
+            6: 'sunday'       # 週日
+        }
+        
         while self.running:
             try:
                 now = datetime.now()
                 current_time = now.strftime("%H:%M")
-                current_weekday = now.strftime("%A").lower()  # monday, tuesday, etc.
+                # 使用weekday()獲取數字(0=週一, 6=週日)，避免語言依賴
+                current_weekday = weekday_map[now.weekday()]
                 
                 for schedule in self.schedules:
                     schedule_id = schedule.get('id')
@@ -97,9 +109,21 @@ class Scheduler:
         if not self.schedules:
             return None
         
+        # 星期名映射（使用weekday()數字避免語言依賴）
+        weekday_map = {
+            0: 'monday',      # 週一
+            1: 'tuesday',     # 週二
+            2: 'wednesday',   # 週三
+            3: 'thursday',    # 週四
+            4: 'friday',      # 週五
+            5: 'saturday',    # 週六
+            6: 'sunday'       # 週日
+        }
+        
         now = datetime.now()
         current_time = now.time()
-        current_weekday = now.strftime("%A").lower()
+        # 使用weekday()獲取數字(0=週一, 6=週日)，避免語言依賴
+        current_weekday = weekday_map[now.weekday()]
         
         next_times = []
         

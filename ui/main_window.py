@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import os
 import sys
+import threading
 from datetime import datetime
 
 # 嘗試匯入tkinterdnd2，如果失敗則使用普通Tk
@@ -69,6 +70,7 @@ class MainWindow:
         self.schedules = []
         self.selected_files = []  # 目前選擇的檔案列表
         self.next_schedule_id = 1
+        self.max_selected_files = 50  # 限制最多選擇50個檔案
         
         # UI組件
         self.setup_ui()
@@ -664,40 +666,82 @@ class MainWindow:
         self.root.destroy()
     
     def update_time_display(self):
-        """更新時間顯示"""
-        now = datetime.now()
-        time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-        self.time_label.config(text=f"目前時間：{time_str}")
-        
-        # 更新下一個播放時間
-        next_info = self.scheduler.get_next_play_time()
-        if next_info:
-            if 'days' in next_info:
-                self.next_time_label.config(text=f"下次播放：{next_info['days']}天後 {next_info['time']}")
+        """更新時間顯示（優化：避免遞迴深度問題）"""
+        try:
+            now = datetime.now()
+            time_str = now.strftime("%Y-%m-%d %H:%M:%S")
+            self.time_label.config(text=f"目前時間：{time_str}")
+            
+            # 更新下一個播放時間
+            next_info = self.scheduler.get_next_play_time()
+            if next_info:
+                if 'days' in next_info:
+                    self.next_time_label.config(text=f"下次播放：{next_info['days']}天後 {next_info['time']}")
+                else:
+                    self.next_time_label.config(text=f"下次播放：今天 {next_info['time']}")
             else:
-                self.next_time_label.config(text=f"下次播放：今天 {next_info['time']}")
-        else:
-            self.next_time_label.config(text="")
-        
-        # 每秒更新一次
-        self.root.after(1000, self.update_time_display)
+                self.next_time_label.config(text="")
+        except Exception as e:
+            print(f"更新時間顯示錯誤: {e}")
+        finally:
+            # 使用after而不是遞迴調用，避免堆疊問題
+            if hasattr(self, 'root') and self.root:
+                self.root.after(1000, self.update_time_display)
     
     def on_drop(self, event):
-        """處理檔案拖放"""
+        """處理檔案拖放（非阻塞驗證）"""
         files = self.root.tk.splitlist(event.data)
-        valid_files, invalid_files = validate_dropped_files(files)
         
+        # 如果檔案數量少（<=10），直接驗證；否則使用背景執行緒
+        if len(files) <= 10:
+            valid_files, invalid_files = validate_dropped_files(files)
+            self._handle_validation_result(valid_files, invalid_files)
+        else:
+            # 大量檔案時使用背景執行緒驗證
+            self.status_label.config(text="正在驗證檔案...")
+            threading.Thread(
+                target=self._validate_files_async,
+                args=(files,),
+                daemon=True
+            ).start()
+    
+    def _validate_files_async(self, files):
+        """在背景執行緒中驗證檔案"""
+        valid_files, invalid_files = validate_dropped_files(files)
+        # 在主執行緒中更新UI
+        self.root.after(0, self._handle_validation_result, valid_files, invalid_files)
+    
+    def _handle_validation_result(self, valid_files, invalid_files):
+        """處理驗證結果"""
         if invalid_files:
             error_msg = "以下檔案無法添加：\n"
             for file_path, reason in invalid_files[:5]:  # 最多顯示5個錯誤
                 error_msg += f"{os.path.basename(file_path)}: {reason}\n"
+            if len(invalid_files) > 5:
+                error_msg += f"...還有 {len(invalid_files) - 5} 個檔案無法添加\n"
             messagebox.showwarning("檔案驗證失敗", error_msg)
         
-        self.selected_files.extend(valid_files)
+        # 檢查檔案列表大小限制
+        remaining_slots = self.max_selected_files - len(self.selected_files)
+        if remaining_slots <= 0:
+            messagebox.showwarning("提示", f"已達到檔案列表上限（{self.max_selected_files}個），請先移除部分檔案")
+            self.update_file_listbox()
+            self.status_label.config(text="就緒")
+            return
+        
+        # 只添加可容納的檔案數量
+        files_to_add = valid_files[:remaining_slots]
+        if len(valid_files) > remaining_slots:
+            messagebox.showinfo("提示", 
+                f"已添加 {remaining_slots} 個檔案（達到上限）。\n"
+                f"還有 {len(valid_files) - remaining_slots} 個檔案未添加。")
+        
+        self.selected_files.extend(files_to_add)
         self.update_file_listbox()
+        self.status_label.config(text="就緒")
     
     def select_files(self):
-        """選擇檔案"""
+        """選擇檔案（非阻塞驗證）"""
         files = filedialog.askopenfilenames(
             title="選擇音訊檔案",
             filetypes=[
@@ -707,18 +751,28 @@ class MainWindow:
         )
         
         if files:
-            valid_files, invalid_files = validate_dropped_files(files)
-            if invalid_files:
-                error_msg = "以下檔案無法添加：\n"
-                for file_path, reason in invalid_files[:5]:
-                    error_msg += f"{os.path.basename(file_path)}: {reason}\n"
-                messagebox.showwarning("檔案驗證失敗", error_msg)
-            
-            self.selected_files.extend(valid_files)
-            self.update_file_listbox()
+            # 如果檔案數量少（<=10），直接驗證；否則使用背景執行緒
+            if len(files) <= 10:
+                valid_files, invalid_files = validate_dropped_files(files)
+                self._handle_validation_result(valid_files, invalid_files)
+            else:
+                # 大量檔案時使用背景執行緒驗證
+                self.status_label.config(text="正在驗證檔案...")
+                threading.Thread(
+                    target=self._validate_files_async,
+                    args=(files,),
+                    daemon=True
+                ).start()
     
     def update_file_listbox(self):
         """更新檔案列表顯示"""
+        # 限制檔案列表大小（最多50個檔案）
+        MAX_FILES = 50
+        if len(self.selected_files) > MAX_FILES:
+            # 保留最新的50個檔案
+            self.selected_files = self.selected_files[-MAX_FILES:]
+            messagebox.showwarning("提示", f"檔案列表已限制為最多{MAX_FILES}個檔案，已移除舊的檔案")
+        
         self.file_listbox.delete(0, tk.END)
         for file_path in self.selected_files:
             self.file_listbox.insert(tk.END, os.path.basename(file_path))

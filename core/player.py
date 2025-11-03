@@ -9,6 +9,9 @@ import queue
 import os
 import time
 
+# 播放佇列最大大小（防止記憶體過度使用）
+MAX_QUEUE_SIZE = 100
+
 class AudioPlayer:
     """音訊播放器類別，支援播放佇列"""
     
@@ -22,7 +25,8 @@ class AudioPlayer:
             pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
         except pygame.error:
             pygame.mixer.init()
-        self.play_queue = queue.Queue()
+        # 限制播放佇列大小（最多100個檔案）
+        self.play_queue = queue.Queue(maxsize=100)
         self.is_playing = False
         self.current_file = None
         self.on_playback_start = on_playback_start
@@ -35,15 +39,29 @@ class AudioPlayer:
         將檔案加入播放佇列
         :param file_paths: 檔案路徑列表
         """
+        added_count = 0
+        skipped_count = 0
+        
         for file_path in file_paths:
-            if os.path.exists(file_path):
-                self.play_queue.put(file_path)
-                print(f"已加入佇列: {file_path}")
-            else:
+            if not os.path.exists(file_path):
                 print(f"檔案不存在，跳過: {file_path}")
+                skipped_count += 1
+                continue
+            
+            # 嘗試加入佇列（如果佇列已滿會拋出Full異常）
+            try:
+                self.play_queue.put(file_path, block=False)
+                print(f"已加入佇列: {file_path}")
+                added_count += 1
+            except queue.Full:
+                print(f"播放佇列已滿（最多100個檔案），跳過: {file_path}")
+                skipped_count += 1
+        
+        if skipped_count > 0:
+            print(f"警告: {skipped_count} 個檔案無法加入佇列（佇列已滿）")
         
         # 如果目前沒有在播放，啟動播放執行緒
-        if not self.is_playing and self.play_thread is None:
+        if not self.is_playing and self.play_thread is None and added_count > 0:
             self._start_playback_thread()
     
     def _start_playback_thread(self):
@@ -80,8 +98,12 @@ class AudioPlayer:
                 self.on_playback_start(file_path)
             
             # 載入並播放音訊
-            pygame.mixer.music.load(file_path)
-            pygame.mixer.music.play()
+            try:
+                pygame.mixer.music.load(file_path)
+                pygame.mixer.music.play()
+            except pygame.error as e:
+                print(f"載入/播放音訊檔案失敗: {file_path}, {e}")
+                raise
             
             # 等待播放完成或被停止
             while pygame.mixer.music.get_busy() and not self.stop_flag:
@@ -104,8 +126,18 @@ class AudioPlayer:
             if self.on_playback_end:
                 self.on_playback_end()
         finally:
+            # 清理資源：卸載音樂以釋放記憶體
+            try:
+                pygame.mixer.music.unload()
+            except:
+                pass
             self.is_playing = False
             self.current_file = None
+            # 播放完成後嘗試清理pygame資源（但不完全退出，以便後續播放）
+            try:
+                pygame.mixer.music.stop()
+            except:
+                pass
     
     def play_files(self, file_paths):
         """立即播放檔案列表（加入佇列）"""

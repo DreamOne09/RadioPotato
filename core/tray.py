@@ -1,5 +1,5 @@
 """
-系统托盘模块
+系統託盤模組
 """
 
 import pystray
@@ -7,14 +7,14 @@ from PIL import Image, ImageDraw
 import threading
 
 class SystemTray:
-    """系统托盘管理器"""
+    """系統託盤管理器"""
     
     def __init__(self, on_show=None, on_quit=None, on_double_click=None):
         """
-        初始化系统托盘
-        :param on_show: 显示窗口的回调函数
-        :param on_quit: 退出程序的回调函数
-        :param on_double_click: 双击托盘图标的回调函数
+        初始化系統託盤
+        :param on_show: 顯示視窗的回調函數
+        :param on_quit: 退出程式的回調函數
+        :param on_double_click: 雙擊託盤圖示的回調函數
         """
         self.on_show = on_show
         self.on_quit = on_quit
@@ -24,51 +24,51 @@ class SystemTray:
         self.blink_thread = None
         
     def create_icon(self):
-        """创建托盘图标"""
-        # 创建一个简单的图标
+        """建立託盤圖示"""
+        # 建立一個簡單的圖示
         image = Image.new('RGB', (64, 64), color='blue')
         draw = ImageDraw.Draw(image)
         draw.ellipse([16, 16, 48, 48], fill='white', outline='black')
         return image
     
     def start(self):
-        """启动系统托盘"""
+        """啟動系統託盤"""
         image = self.create_icon()
         
         menu = pystray.Menu(
-            pystray.MenuItem('显示窗口', self._show_window),
+            pystray.MenuItem('顯示視窗', self._show_window),
             pystray.MenuItem('退出', self._quit)
         )
         
-        self.icon = pystray.Icon("RadioPotato", image, "自动广播系统", menu)
+        self.icon = pystray.Icon("RadioPotato", image, "自動廣播系統", menu)
         
-        # 双击事件
+        # 雙擊事件
         if self.on_double_click:
-            # pystray的双击事件需要通过其他方式实现
+            # pystray的雙擊事件需要通過其他方式實現
             pass
         
-        # 在后台线程运行图标
+        # 在後台執行緒運行圖示
         threading.Thread(target=self._run_icon, daemon=True).start()
     
     def _run_icon(self):
-        """运行图标（需要在独立线程中）"""
+        """運行圖示（需要在獨立執行緒中）"""
         if self.icon:
             self.icon.run()
     
     def _show_window(self, icon=None, item=None):
-        """显示窗口"""
+        """顯示視窗"""
         if self.on_show:
             self.on_show()
     
     def _quit(self, icon=None, item=None):
-        """退出程序"""
+        """退出程式"""
         if self.on_quit:
             self.on_quit()
     
     def stop_blinking(self):
-        """停止闪烁"""
+        """停止閃爍"""
         self.is_blinking = False
-        # 确保图标可见
+        # 確保圖示可見
         if self.icon:
             try:
                 self.icon.visible = True
@@ -76,15 +76,15 @@ class SystemTray:
                 pass
     
     def start_blinking(self):
-        """开始闪烁"""
-        if not self.is_blinking:
+        """開始閃爍"""
+        if not self.is_blinking and self.icon:
             self.is_blinking = True
             if self.blink_thread is None or not self.blink_thread.is_alive():
                 self.blink_thread = threading.Thread(target=self._blink_worker, daemon=True)
                 self.blink_thread.start()
     
     def _blink_worker(self):
-        """闪烁工作线程"""
+        """閃爍工作執行緒"""
         import time
         is_visible = True
         while self.is_blinking and self.icon:
@@ -99,8 +99,7 @@ class SystemTray:
                 break
     
     def stop(self):
-        """停止系统托盘"""
+        """停止系統託盤"""
         if self.icon:
             self.icon.stop()
         self.stop_blinking()
-

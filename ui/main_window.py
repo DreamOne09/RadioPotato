@@ -76,8 +76,12 @@ class MainWindow:
         # 載入保存的資料
         self.load_schedules()
         
-        # 啟動排程器
+        # 啟動排程器（確認真的在運行）
         self.scheduler.start()
+        if self.scheduler.running:
+            print("✓ 排程器已成功啟動，會自動在指定時間播放")
+        else:
+            print("⚠ 排程器啟動失敗")
         
         # 啟動系統託盤
         self.setup_tray()
@@ -470,26 +474,33 @@ class MainWindow:
         tree_frame = tk.Frame(schedule_card, bg=self.colors['bg_card'])
         tree_frame.pack(fill='both', expand=True)
         
-        columns = ('名稱', '週幾', '時間', '檔案數')
+        columns = ('名稱', '週幾', '時間', '音訊檔案', '檔案數')
         self.schedule_tree = ttk.Treeview(
             tree_frame,
             columns=columns,
-            show='headings',
+            show='headings',  # 只顯示標題，不顯示tree列，避免重複
             height=8
         )
         
         # 設定Treeview樣式（增大字體）
         style = ttk.Style()
         style.theme_use('clam')
-        style.configure('Treeview', font=('Microsoft YaHei UI', 11), rowheight=28)
+        style.configure('Treeview', font=('Microsoft YaHei UI', 11), rowheight=35)
         style.configure('Treeview.Heading', font=('Microsoft YaHei UI', 12, 'bold'))
+        
+        # 隱藏預設的#0列（避免重複顯示）
+        self.schedule_tree.column('#0', width=0, stretch=False)
         
         for col in columns:
             self.schedule_tree.heading(col, text=col)
             if col == '名稱':
-                self.schedule_tree.column(col, width=150)
+                self.schedule_tree.column(col, width=120)
+            elif col == '音訊檔案':
+                self.schedule_tree.column(col, width=220)
+            elif col == '週幾':
+                self.schedule_tree.column(col, width=120)
             else:
-                self.schedule_tree.column(col, width=100)
+                self.schedule_tree.column(col, width=80)
         
         scrollbar_tree = ttk.Scrollbar(tree_frame, orient='vertical', command=self.schedule_tree.yview)
         self.schedule_tree.configure(yscrollcommand=scrollbar_tree.set)
@@ -552,11 +563,11 @@ class MainWindow:
         )
         delete_btn.pack(side='left', padx=5)
         
-        # 底部狀態列
+        # 底部狀態列（增大高度以容納版權資訊和自動啟動選項）
         status_frame = tk.Frame(
             self.root,
             bg=self.colors['bg_main'],
-            height=50
+            height=80
         )
         status_frame.pack(fill='x', side='bottom', padx=15, pady=5)
         status_frame.pack_propagate(False)
@@ -583,15 +594,39 @@ class MainWindow:
         )
         self.next_time_label.pack(side='right', padx=10)
         
-        # 版權資訊
+        # 版權資訊（放大字體）
+        copyright_frame = tk.Frame(status_frame, bg=self.colors['bg_main'])
+        copyright_frame.pack(fill='x', pady=(0, 5))
+        
         copyright_label = tk.Label(
-            status_frame,
+            copyright_frame,
             text="本程式由僑務委員會外交替代役 李孟一老師所開發，如有問題可用line聯繫：dreamone09",
             bg=self.colors['bg_main'],
-            fg=self.colors['text_secondary'],
-            font=('Microsoft YaHei UI', 9)
+            fg=self.colors['text_primary'],
+            font=('Microsoft YaHei UI', 13, 'bold')
         )
-        copyright_label.pack(pady=(0, 5))
+        copyright_label.pack()
+        
+        # 開機自動啟動選項
+        try:
+            from core.autostart import is_in_startup, add_to_startup, remove_from_startup
+            
+            self.autostart_var = tk.BooleanVar(value=is_in_startup())
+            autostart_check = tk.Checkbutton(
+                copyright_frame,
+                text="開機時自動啟動",
+                variable=self.autostart_var,
+                command=self.toggle_autostart,
+                bg=self.colors['bg_main'],
+                fg=self.colors['text_primary'],
+                font=('Microsoft YaHei UI', 11),
+                activebackground=self.colors['bg_main'],
+                activeforeground=self.colors['text_primary'],
+                selectcolor=self.colors['bg_card']
+            )
+            autostart_check.pack(pady=(8, 0))
+        except Exception as e:
+            print(f"無法載入自動啟動模組: {e}")
     
     def setup_tray(self):
         """設定系統託盤"""
@@ -782,11 +817,22 @@ class MainWindow:
             }
             days_display = ','.join([day_names.get(day, day) for day in schedule['days']])
             
+            # 格式化音訊檔案顯示（顯示前3個檔案名，超過顯示...）
+            files = schedule.get('files', [])
+            if files:
+                file_names = [os.path.basename(f) for f in files[:3]]
+                files_display = '、'.join(file_names)
+                if len(files) > 3:
+                    files_display += f'... (共{len(files)}個)'
+            else:
+                files_display = '無檔案'
+            
             self.schedule_tree.insert('', 'end', values=(
                 schedule['name'],
                 days_display,
                 schedule['time'],
-                len(schedule['files'])
+                files_display,
+                len(files)
             ), tags=(schedule['id'],))
         
         # 更新排程器
@@ -970,6 +1016,28 @@ class MainWindow:
             'schedules': self.schedules
         }
         self.storage.save_schedules(data)
+    
+    def toggle_autostart(self):
+        """切換開機自動啟動"""
+        try:
+            from core.autostart import add_to_startup, remove_from_startup
+            
+            if self.autostart_var.get():
+                success, message = add_to_startup()
+                if success:
+                    messagebox.showinfo("成功", "已設置開機自動啟動")
+                else:
+                    messagebox.showerror("錯誤", message)
+                    self.autostart_var.set(False)
+            else:
+                success, message = remove_from_startup()
+                if success:
+                    messagebox.showinfo("成功", "已取消開機自動啟動")
+                else:
+                    messagebox.showwarning("提示", message)
+        except Exception as e:
+            messagebox.showerror("錯誤", f"設置失敗: {str(e)}")
+            self.autostart_var.set(False)
     
     def run(self):
         """執行主迴圈"""

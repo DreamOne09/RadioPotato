@@ -567,13 +567,14 @@ class MainWindow:
         status_frame = tk.Frame(
             self.root,
             bg=self.colors['bg_main'],
-            height=80
+            height=100
         )
-        status_frame.pack(fill='x', side='bottom', padx=15, pady=5)
+        status_frame.pack(fill='x', side='bottom', padx=15, pady=(0, 5))
         status_frame.pack_propagate(False)
         
+        # 狀態列（第一行）
         status_inner = tk.Frame(status_frame, bg=self.colors['bg_main'])
-        status_inner.pack(fill='both', expand=True, padx=15, pady=5)
+        status_inner.pack(fill='x', padx=15, pady=(5, 0))
         
         self.status_label = tk.Label(
             status_inner,
@@ -594,9 +595,9 @@ class MainWindow:
         )
         self.next_time_label.pack(side='right', padx=10)
         
-        # 版權資訊（放大字體）
+        # 版權資訊（第二行，確保可見）
         copyright_frame = tk.Frame(status_frame, bg=self.colors['bg_main'])
-        copyright_frame.pack(fill='x', pady=(0, 5))
+        copyright_frame.pack(fill='x', padx=15, pady=(5, 0))
         
         copyright_label = tk.Label(
             copyright_frame,
@@ -781,11 +782,10 @@ class MainWindow:
         
         self.next_schedule_id += 1
         
-        # 添加到列表
+        # 添加到列表（只添加一次，update_schedule_tree會同步到調度器）
         self.schedules.append(schedule)
-        self.scheduler.add_schedule(schedule)
         
-        # 更新顯示
+        # 更新顯示和調度器
         self.update_schedule_tree()
         
         # 清空選擇

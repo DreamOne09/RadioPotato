@@ -92,8 +92,8 @@ class MainWindow:
         left_frame = tk.LabelFrame(main_frame, text="拖放音频文件", width=300)
         left_frame.pack(side='left', fill='both', padx=(0, 5))
         
-        # 拖放区域
-        self.drop_frame = tk.Frame(left_frame, bg='#e8e8e8', relief='dashed', borderwidth=2, height=200)
+        # 拖放区域（使用groove效果替代dashed）
+        self.drop_frame = tk.Frame(left_frame, bg='#e8e8e8', relief='groove', borderwidth=2, height=200)
         self.drop_frame.pack(fill='both', expand=True, padx=10, pady=10)
         
         drop_label = tk.Label(self.drop_frame, text="拖放音频文件到这里\n或点击按钮选择文件", 

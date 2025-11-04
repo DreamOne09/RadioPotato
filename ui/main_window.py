@@ -40,6 +40,10 @@ class MainWindow:
         self.root.geometry("1000x750")
         self.root.minsize(900, 650)
         
+        # 檢測並設定字體（支援舊電腦）
+        self.font_family = self._detect_font()
+        print(f"使用字體: {self.font_family}")
+        
         # 現代化配色方案
         self.colors = {
             'bg_main': '#F5F7FA',  # 主背景色 - 柔和的灰藍色
@@ -60,6 +64,40 @@ class MainWindow:
         # 設定視窗圖標（使用Logo）
         self._set_window_icon()
         
+        # 初始化核心組件（在字體檢測後）
+        self._init_components()
+    
+    def _detect_font(self):
+        """檢測可用的中文字體，提供回退機制"""
+        # 優先順序：微軟雅黑 > 微軟正黑體 > 新細明體 > TkDefaultFont
+        font_candidates = [
+            'Microsoft YaHei UI',
+            'Microsoft YaHei',
+            'Microsoft JhengHei UI',
+            'Microsoft JhengHei',
+            'MingLiU',
+            'PMingLiU',
+            'SimHei',
+            'SimSun'
+        ]
+        
+        # 測試字體是否可用
+        test_label = tk.Label(self.root, text="測試")
+        for font_name in font_candidates:
+            try:
+                test_label.config(font=(font_name, 10))
+                # 如果字體存在，Tkinter不會報錯
+                test_label.destroy()
+                return font_name
+            except:
+                continue
+        
+        # 如果都不可用，使用系統預設字體
+        test_label.destroy()
+        return 'TkDefaultFont'
+    
+    def _init_components(self):
+        """初始化核心組件（在字體檢測後調用）"""
         # 初始化核心組件
         self.storage = Storage()
         self.player = AudioPlayer(
@@ -109,7 +147,7 @@ class MainWindow:
             command=command,
             bg=bg_color,
             fg=fg_color,
-            font=('Microsoft YaHei UI', font_size, 'bold'),
+            font=(self.font_family, font_size, 'bold'),
             relief='flat',
             borderwidth=0,
             padx=20,
@@ -150,8 +188,12 @@ class MainWindow:
                 self.root.iconphoto(False, photo)
                 # 保存引用以避免被垃圾回收
                 self._icon_photo = photo
+                print(f"✓ 視窗圖標載入成功: {logo_path}")
+            else:
+                print(f"⚠ Logo檔案不存在: {logo_path}")
+                print(f"   請確保 RadioOne Logo.png 與程式在同一目錄")
         except Exception as e:
-            print(f"設定視窗圖標失敗: {e}")
+            print(f"⚠ 設定視窗圖標失敗: {e}")
     
     def setup_ui(self):
         """設定UI介面"""
@@ -192,18 +234,20 @@ class MainWindow:
                 title_label = tk.Label(
                     logo_frame,
                     text="自動廣播系統",
-                    font=('Microsoft YaHei UI', 24, 'bold'),
+                    font=(self.font_family, 24, 'bold'),
                     bg=self.colors['bg_main'],
                     fg=self.colors['text_primary']
                 )
                 title_label.pack()
+                print(f"⚠ Big Logo檔案不存在: {big_logo_path}")
+                print(f"   請確保 Radio One Big Logo.png 與程式在同一目錄")
         except Exception as e:
-            print(f"載入Big Logo失敗: {e}")
+            print(f"⚠ 載入Big Logo失敗: {e}")
             # 如果載入失敗，顯示文字標題
             title_label = tk.Label(
                 logo_frame,
                 text="自動廣播系統",
-                font=('Microsoft YaHei UI', 24, 'bold'),
+                font=(self.font_family, 24, 'bold'),
                 bg=self.colors['bg_main'],
                 fg=self.colors['text_primary']
             )
@@ -213,7 +257,7 @@ class MainWindow:
         self.time_label = tk.Label(
             title_row,
             text="",
-            font=('Microsoft YaHei UI', 14),
+            font=(self.font_family, 14),
             bg=self.colors['bg_main'],
             fg=self.colors['text_secondary']
         )
@@ -225,7 +269,7 @@ class MainWindow:
             text="本程式由僑務委員會外交替代役 李孟一老師所開發，如有問題可用line聯繫：dreamone09",
             bg=self.colors['bg_main'],
             fg=self.colors['text_primary'],
-            font=('Microsoft YaHei UI', 12, 'bold'),
+            font=(self.font_family, 12, 'bold'),
             anchor='w'
         )
         copyright_top.pack(fill='x', padx=15, pady=(10, 5))
@@ -252,7 +296,7 @@ class MainWindow:
         left_title = tk.Label(
             left_card,
             text="音訊檔案管理",
-            font=('Microsoft YaHei UI', 16, 'bold'),
+            font=(self.font_family, 16, 'bold'),
             bg=self.colors['bg_card'],
             fg=self.colors['text_primary']
         )
@@ -274,7 +318,7 @@ class MainWindow:
             self.drop_frame,
             text="將音訊檔案拖放到這裡\n或點擊下方按鈕選擇檔案",
             bg=self.colors['bg_accent'],
-            font=('Microsoft YaHei UI', 13),
+            font=(self.font_family, 13),
             fg=self.colors['text_secondary'],
             justify='center',
             wraplength=250
@@ -300,13 +344,13 @@ class MainWindow:
         list_label = tk.Label(
             left_card,
             text="已選擇檔案：",
-            font=('Microsoft YaHei UI', 13, 'bold'),
+            font=(self.font_family, 13, 'bold'),
             bg=self.colors['bg_card'],
             fg=self.colors['text_primary']
         )
         list_label.pack(anchor='w', padx=20, pady=(15, 5))
         
-        # 檔案列表框（增大字體）
+        # 檔案列表框（增大字體，確保可見）
         listbox_frame = tk.Frame(left_card, bg=self.colors['bg_card'])
         listbox_frame.pack(fill='both', expand=True, padx=20, pady=5)
         
@@ -316,13 +360,14 @@ class MainWindow:
         self.file_listbox = tk.Listbox(
             listbox_frame,
             height=8,
-            font=('Microsoft YaHei UI', 12),
-            bg=self.colors['bg_card'],
-            fg=self.colors['text_primary'],
+            font=(self.font_family, 12),
+            bg='white',  # 使用白色背景確保可見
+            fg='black',  # 使用黑色文字確保可見
             selectbackground=self.colors['primary'],
             selectforeground='white',
-            borderwidth=1,
-            relief='flat',
+            borderwidth=2,
+            relief='solid',
+            highlightthickness=1,
             yscrollcommand=scrollbar.set
         )
         self.file_listbox.pack(side='left', fill='both', expand=True)
@@ -334,14 +379,15 @@ class MainWindow:
         
         remove_file_btn = tk.Button(
             file_btn_frame,
-            text="移除選中",
+            text="🗑️ 移除選中",
             command=self.remove_selected_file,
-            font=('Microsoft YaHei UI', 11),
+            font=(self.font_family, 11, 'bold'),
             bg=self.colors['danger'],
             fg='white',
-            relief='flat',
+            relief='raised',
+            borderwidth=2,
             padx=15,
-            pady=8,
+            pady=10,
             cursor='hand2',
             activebackground='#C62828',
             activeforeground='white'
@@ -350,14 +396,15 @@ class MainWindow:
         
         clear_files_btn = tk.Button(
             file_btn_frame,
-            text="清空列表",
+            text="🧹 清空列表",
             command=self.clear_files,
-            font=('Microsoft YaHei UI', 11),
+            font=(self.font_family, 11, 'bold'),
             bg=self.colors['text_secondary'],
             fg='white',
-            relief='flat',
+            relief='raised',
+            borderwidth=2,
             padx=15,
-            pady=8,
+            pady=10,
             cursor='hand2',
             activebackground='#5D6D7E',
             activeforeground='white'
@@ -382,7 +429,7 @@ class MainWindow:
         right_title = tk.Label(
             right_card,
             text="播放計劃設定",
-            font=('Microsoft YaHei UI', 16, 'bold'),
+            font=(self.font_family, 16, 'bold'),
             bg=self.colors['bg_card'],
             fg=self.colors['text_primary']
         )
@@ -399,7 +446,7 @@ class MainWindow:
         days_title = tk.Label(
             days_card,
             text="選擇播放日期",
-            font=('Microsoft YaHei UI', 13, 'bold'),
+            font=(self.font_family, 13, 'bold'),
             bg=self.colors['bg_accent'],
             fg=self.colors['text_primary']
         )
@@ -426,7 +473,7 @@ class MainWindow:
                 days_inner,
                 text=label,
                 variable=var,
-                font=('Microsoft YaHei UI', 12),
+                font=(self.font_family, 12),
                 bg=self.colors['bg_accent'],
                 fg=self.colors['text_primary'],
                 selectcolor=self.colors['bg_card'],
@@ -446,7 +493,7 @@ class MainWindow:
         time_title = tk.Label(
             time_card,
             text="播放時間",
-            font=('Microsoft YaHei UI', 13, 'bold'),
+            font=(self.font_family, 13, 'bold'),
             bg=self.colors['bg_accent'],
             fg=self.colors['text_primary']
         )
@@ -458,7 +505,7 @@ class MainWindow:
         tk.Label(
             time_inner,
             text="時：",
-            font=('Microsoft YaHei UI', 13),
+            font=(self.font_family, 13),
             bg=self.colors['bg_accent'],
             fg=self.colors['text_primary']
         ).pack(side='left', padx=5)
@@ -471,7 +518,7 @@ class MainWindow:
             width=6,
             textvariable=self.hour_var,
             format="%02.0f",
-            font=('Microsoft YaHei UI', 13),
+            font=(self.font_family, 13),
             relief='flat',
             borderwidth=1
         )
@@ -480,7 +527,7 @@ class MainWindow:
         tk.Label(
             time_inner,
             text="分：",
-            font=('Microsoft YaHei UI', 13),
+            font=(self.font_family, 13),
             bg=self.colors['bg_accent'],
             fg=self.colors['text_primary']
         ).pack(side='left', padx=5)
@@ -493,7 +540,7 @@ class MainWindow:
             width=6,
             textvariable=self.minute_var,
             format="%02.0f",
-            font=('Microsoft YaHei UI', 13),
+            font=(self.font_family, 13),
             relief='flat',
             borderwidth=1
         )
@@ -506,7 +553,7 @@ class MainWindow:
         tk.Label(
             name_card,
             text="計劃名稱：",
-            font=('Microsoft YaHei UI', 13),
+            font=(self.font_family, 13),
             bg=self.colors['bg_card'],
             fg=self.colors['text_primary']
         ).pack(side='left')
@@ -516,7 +563,7 @@ class MainWindow:
             name_card,
             textvariable=self.schedule_name_var,
             width=20,
-            font=('Microsoft YaHei UI', 12),
+            font=(self.font_family, 12),
             relief='flat',
             borderwidth=1,
             highlightthickness=1,
@@ -545,13 +592,13 @@ class MainWindow:
         schedule_title = tk.Label(
             schedule_card,
             text="播放計劃列表",
-            font=('Microsoft YaHei UI', 13, 'bold'),
+            font=(self.font_family, 13, 'bold'),
             bg=self.colors['bg_card'],
             fg=self.colors['text_primary']
         )
         schedule_title.pack(pady=(0, 10))
         
-        # 創建Treeview顯示播放計劃
+        # 創建Treeview顯示播放計劃（增強可見性）
         tree_frame = tk.Frame(schedule_card, bg=self.colors['bg_card'])
         tree_frame.pack(fill='both', expand=True)
         
@@ -563,11 +610,22 @@ class MainWindow:
             height=8
         )
         
-        # 設定Treeview樣式（增大字體）
+        # 設定Treeview樣式（增大字體，確保可見）
         style = ttk.Style()
         style.theme_use('clam')
-        style.configure('Treeview', font=('Microsoft YaHei UI', 11), rowheight=35)
-        style.configure('Treeview.Heading', font=('Microsoft YaHei UI', 12, 'bold'))
+        style.configure('Treeview', 
+                       font=(self.font_family, 11), 
+                       rowheight=40,
+                       background='white',
+                       foreground='black',
+                       fieldbackground='white')
+        style.configure('Treeview.Heading', 
+                       font=(self.font_family, 12, 'bold'),
+                       background=self.colors['primary'],
+                       foreground='white')
+        style.map('Treeview', 
+                  background=[('selected', self.colors['primary'])],
+                  foreground=[('selected', 'white')])
         
         # 隱藏預設的#0列（避免重複顯示）
         self.schedule_tree.column('#0', width=0, stretch=False)
@@ -600,12 +658,13 @@ class MainWindow:
             schedule_btn_frame,
             text="🎵 測試播放",
             command=self.test_selected_schedule,
-            font=('Microsoft YaHei UI', 11),
+            font=(self.font_family, 11, 'bold'),
             bg=self.colors['primary'],
             fg='white',
-            relief='flat',
+            relief='raised',
+            borderwidth=2,
             padx=15,
-            pady=8,
+            pady=10,
             cursor='hand2',
             activebackground=self.colors['primary_hover'],
             activeforeground='white'
@@ -616,12 +675,13 @@ class MainWindow:
             schedule_btn_frame,
             text="✏️ 編輯",
             command=self.edit_selected_schedule,
-            font=('Microsoft YaHei UI', 11),
+            font=(self.font_family, 11, 'bold'),
             bg=self.colors['text_secondary'],
             fg='white',
-            relief='flat',
+            relief='raised',
+            borderwidth=2,
             padx=15,
-            pady=8,
+            pady=10,
             cursor='hand2',
             activebackground='#5D6D7E',
             activeforeground='white'
@@ -632,12 +692,13 @@ class MainWindow:
             schedule_btn_frame,
             text="🗑️ 刪除",
             command=self.delete_selected_schedule,
-            font=('Microsoft YaHei UI', 11),
+            font=(self.font_family, 11, 'bold'),
             bg=self.colors['danger'],
             fg='white',
-            relief='flat',
+            relief='raised',
+            borderwidth=2,
             padx=15,
-            pady=8,
+            pady=10,
             cursor='hand2',
             activebackground='#C62828',
             activeforeground='white'
@@ -662,7 +723,7 @@ class MainWindow:
             text="就緒",
             bg=self.colors['bg_main'],
             fg=self.colors['text_primary'],
-            font=('Microsoft YaHei UI', 12),
+            font=(self.font_family, 12),
             anchor='w'
         )
         self.status_label.pack(side='left', fill='x', expand=True)
@@ -672,7 +733,7 @@ class MainWindow:
             text="",
             bg=self.colors['bg_main'],
             fg=self.colors['text_secondary'],
-            font=('Microsoft YaHei UI', 11)
+            font=(self.font_family, 11)
         )
         self.next_time_label.pack(side='right', padx=10)
         
@@ -688,7 +749,7 @@ class MainWindow:
                 command=self.toggle_autostart,
                 bg=self.colors['bg_main'],
                 fg=self.colors['text_primary'],
-                font=('Microsoft YaHei UI', 10),
+                font=(self.font_family, 10),
                 activebackground=self.colors['bg_main'],
                 activeforeground=self.colors['text_primary'],
                 selectcolor=self.colors['bg_card']

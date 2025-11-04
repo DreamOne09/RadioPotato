@@ -91,11 +91,19 @@ class Scheduler:
                         today = now.strftime("%Y-%m-%d")
                         last_trigger_date = self.last_checked_days.get(schedule_id)
                         
-                        if last_trigger_date != today:
+                        # 使用更精確的時間戳記（包含秒），防止1秒內重複觸發
+                        trigger_key = f"{schedule_id}_{today}_{current_time}"
+                        last_trigger_time = self.last_checked_days.get(trigger_key)
+                        current_timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+                        
+                        if last_trigger_date != today or last_trigger_time is None:
                             # 觸發播放
                             if self.on_schedule_trigger:
                                 self.on_schedule_trigger(schedule)
+                            # 記錄觸發日期和時間戳
                             self.last_checked_days[schedule_id] = today
+                            self.last_checked_days[trigger_key] = current_timestamp
+                            print(f"✓ 觸發播放計劃: {schedule.get('name')} ({schedule_time})")
                 
                 # 每秒檢查一次
                 time.sleep(1)

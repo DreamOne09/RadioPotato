@@ -37,8 +37,8 @@ class MainWindow:
         """初始化主視窗"""
         self.root = TkinterDnD.Tk()
         self.root.title("自動廣播系統")
-        self.root.geometry("1000x750")
-        self.root.minsize(900, 650)
+        self.root.geometry("1100x700")
+        self.root.minsize(800, 600)  # 降低最小尺寸，讓縮小時也能使用
         
         # 檢測並設定字體（支援舊電腦）
         self.font_family = self._detect_font()
@@ -197,90 +197,52 @@ class MainWindow:
     
     def setup_ui(self):
         """設定UI介面"""
-        # 頂部區域 - Big Logo和時間顯示
-        top_frame = tk.Frame(self.root, bg=self.colors['bg_main'], height=140)
-        top_frame.pack(fill='x', padx=15, pady=10)
+        # 頂部區域 - 標題和時間顯示（移除Big Logo，優化空間）
+        top_frame = tk.Frame(self.root, bg=self.colors['bg_main'], height=60)
+        top_frame.pack(fill='x', padx=10, pady=5)
         top_frame.pack_propagate(False)
         
-        # 第一行：Big Logo和時間
+        # 標題和時間
         title_row = tk.Frame(top_frame, bg=self.colors['bg_main'])
-        title_row.pack(fill='x', pady=(5, 0))
+        title_row.pack(fill='x', pady=5)
         
-        # 左側：Big Logo
-        logo_frame = tk.Frame(title_row, bg=self.colors['bg_main'])
-        logo_frame.pack(side='left', padx=15)
-        
-        try:
-            # 載入Big Logo
-            if getattr(sys, 'frozen', False):
-                base_path = os.path.dirname(sys.executable)
-            else:
-                base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            
-            big_logo_path = os.path.join(base_path, 'Radio One Big Logo.png')
-            if os.path.exists(big_logo_path):
-                logo_img = Image.open(big_logo_path)
-                # 調整大小（最大高度90px，保持比例）
-                logo_img.thumbnail((350, 90), Image.Resampling.LANCZOS)
-                self.logo_photo = ImageTk.PhotoImage(logo_img)
-                logo_label = tk.Label(
-                    logo_frame,
-                    image=self.logo_photo,
-                    bg=self.colors['bg_main']
-                )
-                logo_label.pack()
-            else:
-                # 如果找不到logo，顯示文字標題
-                title_label = tk.Label(
-                    logo_frame,
-                    text="自動廣播系統",
-                    font=(self.font_family, 24, 'bold'),
-                    bg=self.colors['bg_main'],
-                    fg=self.colors['text_primary']
-                )
-                title_label.pack()
-                print(f"⚠ Big Logo檔案不存在: {big_logo_path}")
-                print(f"   請確保 Radio One Big Logo.png 與程式在同一目錄")
-        except Exception as e:
-            print(f"⚠ 載入Big Logo失敗: {e}")
-            # 如果載入失敗，顯示文字標題
-            title_label = tk.Label(
-                logo_frame,
-                text="自動廣播系統",
-                font=(self.font_family, 24, 'bold'),
-                bg=self.colors['bg_main'],
-                fg=self.colors['text_primary']
-            )
-            title_label.pack()
+        # 左側：標題
+        title_label = tk.Label(
+            title_row,
+            text="自動廣播系統",
+            font=(self.font_family, 18, 'bold'),
+            bg=self.colors['bg_main'],
+            fg=self.colors['text_primary']
+        )
+        title_label.pack(side='left', padx=10)
         
         # 右側：時間
         self.time_label = tk.Label(
             title_row,
             text="",
-            font=(self.font_family, 14),
+            font=(self.font_family, 13),
             bg=self.colors['bg_main'],
             fg=self.colors['text_secondary']
         )
-        self.time_label.pack(side='right', padx=15)
+        self.time_label.pack(side='right', padx=10)
         
-        # 第二行：版權資訊（在Logo下方）
+        # 版權資訊（縮小字體，節省空間）
         copyright_top = tk.Label(
             top_frame,
             text="本程式由僑務委員會外交替代役 李孟一老師所開發，如有問題可用line聯繫：dreamone09",
             bg=self.colors['bg_main'],
-            fg=self.colors['text_primary'],
-            font=(self.font_family, 12, 'bold'),
+            fg=self.colors['text_secondary'],
+            font=(self.font_family, 9),
             anchor='w'
         )
-        copyright_top.pack(fill='x', padx=15, pady=(10, 5))
+        copyright_top.pack(fill='x', padx=10, pady=(0, 5))
         
-        # 中間區域
-        main_frame = tk.Frame(self.root, bg=self.colors['bg_main'])
-        main_frame.pack(fill='both', expand=True, padx=15, pady=5)
+        # 中間區域 - 使用PanedWindow讓左右可調整大小
+        main_paned = tk.PanedWindow(self.root, orient='horizontal', bg=self.colors['bg_main'], sashwidth=5)
+        main_paned.pack(fill='both', expand=True, padx=10, pady=5)
         
         # 左側：拖放區域（現代化卡片設計）
-        left_container = tk.Frame(main_frame, bg=self.colors['bg_main'])
-        left_container.pack(side='left', fill='both', padx=(0, 10))
+        left_container = tk.Frame(main_paned, bg=self.colors['bg_main'])
         
         left_card = tk.Frame(
             left_container,
@@ -373,7 +335,7 @@ class MainWindow:
         self.file_listbox.pack(side='left', fill='both', expand=True)
         scrollbar.config(command=self.file_listbox.yview)
         
-        # 檔案列表操作按鈕（確保完全可見，不折疊）
+        # 檔案列表操作按鈕（增大按鈕，更易點擊）
         file_btn_frame = tk.Frame(left_card, bg=self.colors['bg_card'])
         file_btn_frame.pack(fill='x', padx=20, pady=(10, 15))
         
@@ -381,13 +343,13 @@ class MainWindow:
             file_btn_frame,
             text="🗑️ 移除選中",
             command=self.remove_selected_file,
-            font=(self.font_family, 11, 'bold'),
+            font=(self.font_family, 13, 'bold'),
             bg=self.colors['danger'],
             fg='white',
             relief='raised',
             borderwidth=2,
-            padx=15,
-            pady=10,
+            padx=20,
+            pady=12,
             cursor='hand2',
             activebackground='#C62828',
             activeforeground='white'
@@ -398,22 +360,24 @@ class MainWindow:
             file_btn_frame,
             text="🧹 清空列表",
             command=self.clear_files,
-            font=(self.font_family, 11, 'bold'),
+            font=(self.font_family, 13, 'bold'),
             bg=self.colors['text_secondary'],
             fg='white',
             relief='raised',
             borderwidth=2,
-            padx=15,
-            pady=10,
+            padx=20,
+            pady=12,
             cursor='hand2',
             activebackground='#5D6D7E',
             activeforeground='white'
         )
         clear_files_btn.pack(side='left', padx=(5, 0), fill='x', expand=True)
         
+        # 將左側添加到PanedWindow
+        main_paned.add(left_container, minsize=350, width=450)
+        
         # 右側：播放計劃設定（現代化卡片設計）
-        right_container = tk.Frame(main_frame, bg=self.colors['bg_main'])
-        right_container.pack(side='right', fill='both', expand=True, padx=(10, 0))
+        right_container = tk.Frame(main_paned, bg=self.colors['bg_main'])
         
         right_card = tk.Frame(
             right_container,
@@ -435,36 +399,40 @@ class MainWindow:
         )
         right_title.pack(pady=(15, 10))
         
-        # 周幾選擇
-        days_card = tk.Frame(
-            right_card,
-            bg=self.colors['bg_accent'],
-            relief='flat'
-        )
-        days_card.pack(fill='x', padx=20, pady=10)
+        # 播放設定區域（縮小，節省空間）
+        settings_frame = tk.Frame(right_card, bg=self.colors['bg_card'])
+        settings_frame.pack(fill='x', padx=15, pady=8)
+        
+        # 日期和時間放在同一行（緊湊布局）
+        datetime_row = tk.Frame(settings_frame, bg=self.colors['bg_card'])
+        datetime_row.pack(fill='x', pady=5)
+        
+        # 左側：日期選擇（縮小）
+        days_frame = tk.Frame(datetime_row, bg=self.colors['bg_accent'], relief='flat')
+        days_frame.pack(side='left', fill='x', expand=True, padx=(0, 5))
         
         days_title = tk.Label(
-            days_card,
-            text="選擇播放日期",
-            font=(self.font_family, 13, 'bold'),
+            days_frame,
+            text="日期",
+            font=(self.font_family, 10, 'bold'),
             bg=self.colors['bg_accent'],
             fg=self.colors['text_primary']
         )
-        days_title.pack(pady=(10, 8))
+        days_title.pack(pady=(5, 3))
         
         self.day_vars = {}
         weekdays = [
-            ('週一', 'monday'),
-            ('週二', 'tuesday'),
-            ('週三', 'wednesday'),
-            ('週四', 'thursday'),
-            ('週五', 'friday'),
-            ('週六', 'saturday'),
-            ('週日', 'sunday')
+            ('一', 'monday'),
+            ('二', 'tuesday'),
+            ('三', 'wednesday'),
+            ('四', 'thursday'),
+            ('五', 'friday'),
+            ('六', 'saturday'),
+            ('日', 'sunday')
         ]
         
-        days_inner = tk.Frame(days_card, bg=self.colors['bg_accent'])
-        days_inner.pack(pady=(0, 10))
+        days_inner = tk.Frame(days_frame, bg=self.colors['bg_accent'])
+        days_inner.pack(pady=(0, 5))
         
         for i, (label, value) in enumerate(weekdays):
             var = tk.BooleanVar()
@@ -473,132 +441,137 @@ class MainWindow:
                 days_inner,
                 text=label,
                 variable=var,
-                font=(self.font_family, 12),
+                font=(self.font_family, 10),
                 bg=self.colors['bg_accent'],
                 fg=self.colors['text_primary'],
                 selectcolor=self.colors['bg_card'],
                 activebackground=self.colors['bg_accent'],
                 activeforeground=self.colors['text_primary']
             )
-            cb.grid(row=i//4, column=i%4, padx=15, pady=8, sticky='w')
+            cb.grid(row=i//4, column=i%4, padx=8, pady=3, sticky='w')
         
-        # 時間設定
-        time_card = tk.Frame(
-            right_card,
-            bg=self.colors['bg_accent'],
-            relief='flat'
-        )
-        time_card.pack(fill='x', padx=20, pady=10)
+        # 右側：時間選擇（縮小）
+        time_frame = tk.Frame(datetime_row, bg=self.colors['bg_accent'], relief='flat')
+        time_frame.pack(side='right', fill='x', expand=True, padx=(5, 0))
         
         time_title = tk.Label(
-            time_card,
-            text="播放時間",
-            font=(self.font_family, 13, 'bold'),
+            time_frame,
+            text="時間",
+            font=(self.font_family, 10, 'bold'),
             bg=self.colors['bg_accent'],
             fg=self.colors['text_primary']
         )
-        time_title.pack(pady=(10, 8))
+        time_title.pack(pady=(5, 3))
         
-        time_inner = tk.Frame(time_card, bg=self.colors['bg_accent'])
-        time_inner.pack(pady=(0, 10))
+        time_inner = tk.Frame(time_frame, bg=self.colors['bg_accent'])
+        time_inner.pack(pady=(0, 5))
         
         tk.Label(
             time_inner,
-            text="時：",
-            font=(self.font_family, 13),
+            text="時",
+            font=(self.font_family, 10),
             bg=self.colors['bg_accent'],
             fg=self.colors['text_primary']
-        ).pack(side='left', padx=5)
+        ).pack(side='left', padx=3)
         
         self.hour_var = tk.StringVar(value="15")
         hour_spin = tk.Spinbox(
             time_inner,
             from_=0,
             to=23,
-            width=6,
+            width=4,
             textvariable=self.hour_var,
             format="%02.0f",
-            font=(self.font_family, 13),
+            font=(self.font_family, 10),
             relief='flat',
             borderwidth=1
         )
-        hour_spin.pack(side='left', padx=10)
+        hour_spin.pack(side='left', padx=5)
         
         tk.Label(
             time_inner,
-            text="分：",
-            font=(self.font_family, 13),
+            text="分",
+            font=(self.font_family, 10),
             bg=self.colors['bg_accent'],
             fg=self.colors['text_primary']
-        ).pack(side='left', padx=5)
+        ).pack(side='left', padx=3)
         
         self.minute_var = tk.StringVar(value="40")
         minute_spin = tk.Spinbox(
             time_inner,
             from_=0,
             to=59,
-            width=6,
+            width=4,
             textvariable=self.minute_var,
             format="%02.0f",
-            font=(self.font_family, 13),
+            font=(self.font_family, 10),
             relief='flat',
             borderwidth=1
         )
-        minute_spin.pack(side='left', padx=10)
+        minute_spin.pack(side='left', padx=5)
         
-        # 計劃名稱
-        name_card = tk.Frame(right_card, bg=self.colors['bg_card'])
-        name_card.pack(fill='x', padx=20, pady=10)
+        # 計劃名稱和添加按鈕（緊湊布局）
+        name_btn_row = tk.Frame(right_card, bg=self.colors['bg_card'])
+        name_btn_row.pack(fill='x', padx=15, pady=5)
         
-        tk.Label(
-            name_card,
-            text="計劃名稱：",
-            font=(self.font_family, 13),
+        name_label = tk.Label(
+            name_btn_row,
+            text="名稱：",
+            font=(self.font_family, 11),
             bg=self.colors['bg_card'],
             fg=self.colors['text_primary']
-        ).pack(side='left')
+        )
+        name_label.pack(side='left', padx=(0, 5))
         
         self.schedule_name_var = tk.StringVar(value="上課提醒")
         name_entry = tk.Entry(
-            name_card,
+            name_btn_row,
             textvariable=self.schedule_name_var,
-            width=20,
-            font=(self.font_family, 12),
+            width=15,
+            font=(self.font_family, 11),
             relief='flat',
             borderwidth=1,
             highlightthickness=1,
             highlightbackground=self.colors['border'],
             highlightcolor=self.colors['primary']
         )
-        name_entry.pack(side='left', padx=10)
+        name_entry.pack(side='left', padx=(0, 5), fill='x', expand=True)
         
-        # 添加計劃按鈕
-        add_btn = self.create_modern_button(
-            right_card,
-            "➕ 添加播放計劃",
-            self.add_schedule,
-            bg_color=self.colors['success'],
-            font_size=14
+        # 添加計劃按鈕（縮小）
+        add_btn = tk.Button(
+            name_btn_row,
+            text="➕ 添加",
+            command=self.add_schedule,
+            font=(self.font_family, 11, 'bold'),
+            bg=self.colors['success'],
+            fg='white',
+            relief='raised',
+            borderwidth=2,
+            padx=15,
+            pady=8,
+            cursor='hand2',
+            activebackground=self.colors['success_hover'],
+            activeforeground='white'
         )
-        add_btn.pack(pady=15, padx=20, fill='x')
+        add_btn.pack(side='right')
         
-        # 播放計劃列表
+        # 播放計劃列表（確保有滾輪，縮小時也能看到）
         schedule_card = tk.Frame(
             right_card,
             bg=self.colors['bg_card']
         )
-        schedule_card.pack(fill='both', expand=True, padx=20, pady=10)
+        schedule_card.pack(fill='both', expand=True, padx=15, pady=5)
         
         schedule_title = tk.Label(
             schedule_card,
             text="播放計劃列表",
-            font=(self.font_family, 13, 'bold'),
+            font=(self.font_family, 12, 'bold'),
             bg=self.colors['bg_card'],
             fg=self.colors['text_primary']
         )
-        schedule_title.pack(pady=(0, 10))
+        schedule_title.pack(pady=(0, 5))
         
-        # 創建Treeview顯示播放計劃（增強可見性）
+        # 創建Treeview顯示播放計劃（確保有滾輪）
         tree_frame = tk.Frame(schedule_card, bg=self.colors['bg_card'])
         tree_frame.pack(fill='both', expand=True)
         
@@ -607,20 +580,20 @@ class MainWindow:
             tree_frame,
             columns=columns,
             show='headings',  # 只顯示標題，不顯示tree列，避免重複
-            height=8
+            height=6  # 減少高度，確保縮小時也能顯示
         )
         
-        # 設定Treeview樣式（增大字體，確保可見）
+        # 設定Treeview樣式（緊湊但可見）
         style = ttk.Style()
         style.theme_use('clam')
         style.configure('Treeview', 
-                       font=(self.font_family, 11), 
-                       rowheight=40,
+                       font=(self.font_family, 10), 
+                       rowheight=30,  # 減少行高
                        background='white',
                        foreground='black',
                        fieldbackground='white')
         style.configure('Treeview.Heading', 
-                       font=(self.font_family, 12, 'bold'),
+                       font=(self.font_family, 10, 'bold'),
                        background=self.colors['primary'],
                        foreground='white')
         style.map('Treeview', 
@@ -633,13 +606,13 @@ class MainWindow:
         for col in columns:
             self.schedule_tree.heading(col, text=col)
             if col == '名稱':
-                self.schedule_tree.column(col, width=120)
+                self.schedule_tree.column(col, width=100, minwidth=80)
             elif col == '音訊檔案':
-                self.schedule_tree.column(col, width=220)
+                self.schedule_tree.column(col, width=180, minwidth=120)
             elif col == '週幾':
-                self.schedule_tree.column(col, width=120)
+                self.schedule_tree.column(col, width=100, minwidth=80)
             else:
-                self.schedule_tree.column(col, width=80)
+                self.schedule_tree.column(col, width=60, minwidth=50)
         
         scrollbar_tree = ttk.Scrollbar(tree_frame, orient='vertical', command=self.schedule_tree.yview)
         self.schedule_tree.configure(yscrollcommand=scrollbar_tree.set)
@@ -704,6 +677,9 @@ class MainWindow:
             activeforeground='white'
         )
         delete_btn.pack(side='left', padx=5)
+        
+        # 將右側添加到PanedWindow
+        main_paned.add(right_container, minsize=350, width=600)
         
         # 底部狀態列（只顯示狀態和自動啟動選項）
         status_frame = tk.Frame(

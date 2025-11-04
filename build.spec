@@ -3,6 +3,13 @@ import os
 
 block_cipher = None
 
+# 檢查圖標檔案
+icon_file = None
+if os.path.exists('RadioOne Logo.ico'):
+    icon_file = 'RadioOne Logo.ico'
+elif os.path.exists('RadioOne Logo.png'):
+    icon_file = 'RadioOne Logo.png'
+
 a = Analysis(
     ['main.py'],
     pathex=[],
@@ -50,5 +57,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='RadioOne Logo.png' if not os.path.exists('RadioOne Logo.ico') else 'RadioOne Logo.ico',  # 使用ICO或PNG圖標，內嵌到exe中，用於任務欄顯示
+    icon=icon_file,  # 使用ICO或PNG圖標，內嵌到exe中，用於任務欄顯示
 )

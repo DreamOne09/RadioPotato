@@ -264,9 +264,9 @@ class MainWindow:
         self.file_listbox.pack(side='left', fill='both', expand=True)
         scrollbar.config(command=self.file_listbox.yview)
         
-        # 檔案列表操作按鈕
+        # 檔案列表操作按鈕（確保完全可見，不折疊）
         file_btn_frame = tk.Frame(left_card, bg=self.colors['bg_card'])
-        file_btn_frame.pack(pady=10)
+        file_btn_frame.pack(fill='x', padx=20, pady=(10, 15))
         
         remove_file_btn = tk.Button(
             file_btn_frame,
@@ -282,7 +282,7 @@ class MainWindow:
             activebackground='#C62828',
             activeforeground='white'
         )
-        remove_file_btn.pack(side='left', padx=5)
+        remove_file_btn.pack(side='left', padx=(0, 5), fill='x', expand=True)
         
         clear_files_btn = tk.Button(
             file_btn_frame,
@@ -298,7 +298,7 @@ class MainWindow:
             activebackground='#5D6D7E',
             activeforeground='white'
         )
-        clear_files_btn.pack(side='left', padx=5)
+        clear_files_btn.pack(side='left', padx=(5, 0), fill='x', expand=True)
         
         # 右側：播放計劃設定（現代化卡片設計）
         right_container = tk.Frame(main_frame, bg=self.colors['bg_main'])

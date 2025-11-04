@@ -50,5 +50,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,  # 圖標會在運行時動態載入（使用RadioOne Logo.png）
+    icon='RadioOne Logo.png' if not os.path.exists('RadioOne Logo.ico') else 'RadioOne Logo.ico',  # 使用ICO或PNG圖標，內嵌到exe中，用於任務欄顯示
 )

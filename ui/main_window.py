@@ -132,24 +132,61 @@ class MainWindow:
     
     def setup_ui(self):
         """設定UI介面"""
-        # 頂部區域 - 標題和時間顯示
-        top_frame = tk.Frame(self.root, bg=self.colors['bg_main'], height=100)
+        # 頂部區域 - Big Logo和時間顯示
+        top_frame = tk.Frame(self.root, bg=self.colors['bg_main'], height=140)
         top_frame.pack(fill='x', padx=15, pady=10)
         top_frame.pack_propagate(False)
         
-        # 第一行：標題和時間
+        # 第一行：Big Logo和時間
         title_row = tk.Frame(top_frame, bg=self.colors['bg_main'])
         title_row.pack(fill='x', pady=(5, 0))
         
-        title_label = tk.Label(
-            title_row,
-            text="自動廣播系統",
-            font=('Microsoft YaHei UI', 24, 'bold'),
-            bg=self.colors['bg_main'],
-            fg=self.colors['text_primary']
-        )
-        title_label.pack(side='left', padx=15)
+        # 左側：Big Logo
+        logo_frame = tk.Frame(title_row, bg=self.colors['bg_main'])
+        logo_frame.pack(side='left', padx=15)
         
+        try:
+            # 載入Big Logo
+            if getattr(sys, 'frozen', False):
+                base_path = os.path.dirname(sys.executable)
+            else:
+                base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            
+            big_logo_path = os.path.join(base_path, 'Radio One Big Logo.png')
+            if os.path.exists(big_logo_path):
+                logo_img = Image.open(big_logo_path)
+                # 調整大小（最大高度90px，保持比例）
+                logo_img.thumbnail((350, 90), Image.Resampling.LANCZOS)
+                self.logo_photo = ImageTk.PhotoImage(logo_img)
+                logo_label = tk.Label(
+                    logo_frame,
+                    image=self.logo_photo,
+                    bg=self.colors['bg_main']
+                )
+                logo_label.pack()
+            else:
+                # 如果找不到logo，顯示文字標題
+                title_label = tk.Label(
+                    logo_frame,
+                    text="自動廣播系統",
+                    font=('Microsoft YaHei UI', 24, 'bold'),
+                    bg=self.colors['bg_main'],
+                    fg=self.colors['text_primary']
+                )
+                title_label.pack()
+        except Exception as e:
+            print(f"載入Big Logo失敗: {e}")
+            # 如果載入失敗，顯示文字標題
+            title_label = tk.Label(
+                logo_frame,
+                text="自動廣播系統",
+                font=('Microsoft YaHei UI', 24, 'bold'),
+                bg=self.colors['bg_main'],
+                fg=self.colors['text_primary']
+            )
+            title_label.pack()
+        
+        # 右側：時間
         self.time_label = tk.Label(
             title_row,
             text="",
@@ -159,7 +196,7 @@ class MainWindow:
         )
         self.time_label.pack(side='right', padx=15)
         
-        # 第二行：版權資訊（在時間下方）
+        # 第二行：版權資訊（在Logo下方）
         copyright_top = tk.Label(
             top_frame,
             text="本程式由僑務委員會外交替代役 李孟一老師所開發，如有問題可用line聯繫：dreamone09",
@@ -168,7 +205,7 @@ class MainWindow:
             font=('Microsoft YaHei UI', 12, 'bold'),
             anchor='w'
         )
-        copyright_top.pack(fill='x', padx=15, pady=(8, 5))
+        copyright_top.pack(fill='x', padx=15, pady=(10, 5))
         
         # 中間區域
         main_frame = tk.Frame(self.root, bg=self.colors['bg_main'])

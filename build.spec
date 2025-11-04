@@ -33,7 +33,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='RadioPotato',
+    name='radioone',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

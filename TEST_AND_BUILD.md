@@ -87,13 +87,13 @@ python main.py
    ```
 
 3. **檢查輸出**
-   - 打包後的exe位於 `dist/RadioPotato.exe`
+   - 打包後的exe位於 `dist/radioone.exe`
    - 如果打包成功，檔案大小約15-25MB
 
 ### 方法2：直接使用PyInstaller命令
 
 ```bash
-pyinstaller --onefile --windowed --name=RadioPotato --hiddenimport=pystray._win32 --hiddenimport=win32timezone --hiddenimport=tkinterdnd2 --hiddenimport=PIL._tkinter_finder --hiddenimport=win10toast main.py
+pyinstaller --onefile --windowed --name=radioone --hiddenimport=pystray._win32 --hiddenimport=win32timezone --hiddenimport=tkinterdnd2 --hiddenimport=PIL._tkinter_finder --hiddenimport=win10toast main.py
 ```
 
 ### 打包後測試
@@ -101,7 +101,7 @@ pyinstaller --onefile --windowed --name=RadioPotato --hiddenimport=pystray._win3
 1. **關閉開發環境中的程式**
 
 2. **運行打包後的exe**
-   - 雙擊 `dist/RadioPotato.exe`
+   - 雙擊 `dist/radioone.exe`
    - 如果首次運行較慢（解壓過程），屬正常現象
 
 3. **功能測試**
@@ -112,7 +112,7 @@ pyinstaller --onefile --windowed --name=RadioPotato --hiddenimport=pystray._win3
      - 系統託盤是否正常
 
 4. **便攜性測試**
-   - 將 `RadioPotato.exe` 複製到其他目錄
+   - 將 `radioone.exe` 複製到其他目錄
    - 運行測試是否正常
    - 檢查 `data` 資料夾是否正確建立
 
@@ -151,7 +151,7 @@ pyinstaller --onefile --windowed --name=RadioPotato --hiddenimport=pystray._win3
    - 在不同Windows版本上測試（如果可能）
 
 2. **準備發布檔案**
-   - `RadioPotato.exe` - 主程式
+   - `radioone.exe` - 主程式
    - `README.md` - 專案說明
    - `USAGE.md` - 使用說明（可選）
 

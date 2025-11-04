@@ -38,7 +38,7 @@ def add_to_startup():
         )
         
         # 添加啟動項
-        winreg.SetValueEx(key, "RadioPotato", 0, winreg.REG_SZ, command)
+        winreg.SetValueEx(key, "radioone", 0, winreg.REG_SZ, command)
         winreg.CloseKey(key)
         
         return True, "已添加到開機啟動"
@@ -56,7 +56,7 @@ def remove_from_startup():
         )
         
         try:
-            winreg.DeleteValue(key, "RadioPotato")
+            winreg.DeleteValue(key, "radioone")
             winreg.CloseKey(key)
             return True, "已從開機啟動移除"
         except FileNotFoundError:
@@ -76,7 +76,7 @@ def is_in_startup():
         )
         
         try:
-            winreg.QueryValueEx(key, "RadioPotato")
+            winreg.QueryValueEx(key, "radioone")
             winreg.CloseKey(key)
             return True
         except FileNotFoundError:

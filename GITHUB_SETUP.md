@@ -11,14 +11,14 @@
 ### HTTPS方式（推荐，适合大多数用户）
 
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/RadioPotato.git
+git remote add origin https://github.com/YOUR_USERNAME/radioone.git
 git push -u origin main
 ```
 
 ### SSH方式（如果您已配置SSH密钥）
 
 ```bash
-git remote add origin git@github.com:YOUR_USERNAME/RadioPotato.git
+git remote add origin git@github.com:YOUR_USERNAME/radioone.git
 git push -u origin main
 ```
 
@@ -33,7 +33,7 @@ git push -u origin main
 
 ## 首次推送后
 
-1. 访问 https://github.com/YOUR_USERNAME/RadioPotato 查看您的仓库
+1. 访问 https://github.com/YOUR_USERNAME/radioone 查看您的仓库
 2. 可以添加 README.md 中的描述
 3. 可以添加 Topics 标签，例如：`python`, `audio-player`, `scheduler`, `tkinter`, `windows`
 

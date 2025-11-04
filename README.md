@@ -1,4 +1,4 @@
-# 自動廣播系統 (RadioPotato)
+# 自動廣播系統 (radioone)
 
 本程式由僑務委員會外交替代役 李孟一老師所開發，如有問題可用line聯繫：dreamone09
 
@@ -35,7 +35,7 @@ python main.py
 pyinstaller build.spec
 ```
 
-打包後的exe位於 `dist/RadioPotato.exe`
+打包後的exe位於 `dist/radioone.exe`
 
 ## 使用說明
 

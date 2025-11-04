@@ -40,7 +40,7 @@ class SystemTray:
             pystray.MenuItem('退出', self._quit)
         )
         
-        self.icon = pystray.Icon("RadioPotato", image, "自動廣播系統", menu)
+        self.icon = pystray.Icon("radioone", image, "自動廣播系統", menu)
         
         # 雙擊事件
         if self.on_double_click:

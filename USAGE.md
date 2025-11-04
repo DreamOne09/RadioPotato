@@ -23,15 +23,15 @@ pyinstaller build.spec
 ### 方法2：直接使用命令
 
 ```bash
-pyinstaller --onefile --windowed --name=RadioPotato main.py
+pyinstaller --onefile --windowed --name=radioone main.py
 ```
 
-打包後的exe檔案位於 `dist/RadioPotato.exe`
+打包後的exe檔案位於 `dist/radioone.exe`
 
 ## 使用方法
 
 1. **啟動程式**
-   - 雙擊 `RadioPotato.exe` 運行
+   - 雙擊 `radioone.exe` 運行
    - 程式會在同目錄下自動建立 `data` 資料夾用於保存播放計劃
 
 2. **添加音訊檔案**

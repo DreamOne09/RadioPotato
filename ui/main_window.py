@@ -130,6 +130,29 @@ class MainWindow:
         
         return btn
     
+    def _set_window_icon(self):
+        """設定視窗圖標（使用Logo）"""
+        try:
+            # 獲取logo文件路徑
+            if getattr(sys, 'frozen', False):
+                # 打包後的exe
+                base_path = os.path.dirname(sys.executable)
+            else:
+                # 開發模式
+                base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            
+            logo_path = os.path.join(base_path, 'RadioOne Logo.png')
+            if os.path.exists(logo_path):
+                # 載入並設定圖標
+                icon = Image.open(logo_path)
+                # 轉換為PhotoImage
+                photo = ImageTk.PhotoImage(icon)
+                self.root.iconphoto(False, photo)
+                # 保存引用以避免被垃圾回收
+                self._icon_photo = photo
+        except Exception as e:
+            print(f"設定視窗圖標失敗: {e}")
+    
     def setup_ui(self):
         """設定UI介面"""
         # 頂部區域 - Big Logo和時間顯示

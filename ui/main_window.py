@@ -129,12 +129,16 @@ class MainWindow:
     def setup_ui(self):
         """設定UI介面"""
         # 頂部區域 - 標題和時間顯示
-        top_frame = tk.Frame(self.root, bg=self.colors['bg_main'], height=80)
+        top_frame = tk.Frame(self.root, bg=self.colors['bg_main'], height=100)
         top_frame.pack(fill='x', padx=15, pady=10)
         top_frame.pack_propagate(False)
         
+        # 第一行：標題和時間
+        title_row = tk.Frame(top_frame, bg=self.colors['bg_main'])
+        title_row.pack(fill='x', pady=(5, 0))
+        
         title_label = tk.Label(
-            top_frame,
+            title_row,
             text="自動廣播系統",
             font=('Microsoft YaHei UI', 24, 'bold'),
             bg=self.colors['bg_main'],
@@ -143,13 +147,24 @@ class MainWindow:
         title_label.pack(side='left', padx=15)
         
         self.time_label = tk.Label(
-            top_frame,
+            title_row,
             text="",
             font=('Microsoft YaHei UI', 14),
             bg=self.colors['bg_main'],
             fg=self.colors['text_secondary']
         )
         self.time_label.pack(side='right', padx=15)
+        
+        # 第二行：版權資訊（在時間下方）
+        copyright_top = tk.Label(
+            top_frame,
+            text="本程式由僑務委員會外交替代役 李孟一老師所開發，如有問題可用line聯繫：dreamone09",
+            bg=self.colors['bg_main'],
+            fg=self.colors['text_primary'],
+            font=('Microsoft YaHei UI', 12, 'bold'),
+            anchor='w'
+        )
+        copyright_top.pack(fill='x', padx=15, pady=(8, 5))
         
         # 中間區域
         main_frame = tk.Frame(self.root, bg=self.colors['bg_main'])
@@ -565,18 +580,18 @@ class MainWindow:
         )
         delete_btn.pack(side='left', padx=5)
         
-        # 底部狀態列（增大高度以容納版權資訊和自動啟動選項）
+        # 底部狀態列（只顯示狀態和自動啟動選項）
         status_frame = tk.Frame(
             self.root,
             bg=self.colors['bg_main'],
-            height=100
+            height=60
         )
         status_frame.pack(fill='x', side='bottom', padx=15, pady=(0, 5))
         status_frame.pack_propagate(False)
         
-        # 狀態列（第一行）
+        # 狀態列
         status_inner = tk.Frame(status_frame, bg=self.colors['bg_main'])
-        status_inner.pack(fill='x', padx=15, pady=(5, 0))
+        status_inner.pack(fill='x', padx=15, pady=5)
         
         self.status_label = tk.Label(
             status_inner,
@@ -597,37 +612,24 @@ class MainWindow:
         )
         self.next_time_label.pack(side='right', padx=10)
         
-        # 版權資訊（第二行，確保可見）
-        copyright_frame = tk.Frame(status_frame, bg=self.colors['bg_main'])
-        copyright_frame.pack(fill='x', padx=15, pady=(5, 0))
-        
-        copyright_label = tk.Label(
-            copyright_frame,
-            text="本程式由僑務委員會外交替代役 李孟一老師所開發，如有問題可用line聯繫：dreamone09",
-            bg=self.colors['bg_main'],
-            fg=self.colors['text_primary'],
-            font=('Microsoft YaHei UI', 13, 'bold')
-        )
-        copyright_label.pack()
-        
-        # 開機自動啟動選項
+        # 開機自動啟動選項（放在狀態列右側）
         try:
             from core.autostart import is_in_startup, add_to_startup, remove_from_startup
             
             self.autostart_var = tk.BooleanVar(value=is_in_startup())
             autostart_check = tk.Checkbutton(
-                copyright_frame,
+                status_inner,
                 text="開機時自動啟動",
                 variable=self.autostart_var,
                 command=self.toggle_autostart,
                 bg=self.colors['bg_main'],
                 fg=self.colors['text_primary'],
-                font=('Microsoft YaHei UI', 11),
+                font=('Microsoft YaHei UI', 10),
                 activebackground=self.colors['bg_main'],
                 activeforeground=self.colors['text_primary'],
                 selectcolor=self.colors['bg_card']
             )
-            autostart_check.pack(pady=(8, 0))
+            autostart_check.pack(side='right', padx=(10, 0))
         except Exception as e:
             print(f"無法載入自動啟動模組: {e}")
     

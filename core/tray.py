@@ -5,6 +5,8 @@
 import pystray
 from PIL import Image, ImageDraw
 import threading
+import os
+import sys
 
 class SystemTray:
     """系統託盤管理器"""
@@ -24,8 +26,27 @@ class SystemTray:
         self.blink_thread = None
         
     def create_icon(self):
-        """建立託盤圖示"""
-        # 建立一個簡單的圖示
+        """建立託盤圖示（使用Logo）"""
+        try:
+            # 獲取logo文件路徑
+            if getattr(sys, 'frozen', False):
+                # 打包後的exe
+                base_path = os.path.dirname(sys.executable)
+            else:
+                # 開發模式
+                base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            
+            logo_path = os.path.join(base_path, 'RadioOne Logo.png')
+            if os.path.exists(logo_path):
+                # 載入logo圖片
+                image = Image.open(logo_path)
+                # 調整大小為64x64（託盤圖示標準大小）
+                image = image.resize((64, 64), Image.Resampling.LANCZOS)
+                return image
+        except Exception as e:
+            print(f"載入託盤圖示失敗: {e}")
+        
+        # 如果載入失敗，使用預設圖示
         image = Image.new('RGB', (64, 64), color='blue')
         draw = ImageDraw.Draw(image)
         draw.ellipse([16, 16, 48, 48], fill='white', outline='black')

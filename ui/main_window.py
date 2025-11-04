@@ -8,6 +8,7 @@ import os
 import sys
 import threading
 from datetime import datetime
+from PIL import Image, ImageTk
 
 # 嘗試匯入tkinterdnd2，如果失敗則使用普通Tk
 try:
@@ -55,6 +56,9 @@ class MainWindow:
         }
         
         self.root.configure(bg=self.colors['bg_main'])
+        
+        # 設定視窗圖標（使用Logo）
+        self._set_window_icon()
         
         # 初始化核心組件
         self.storage = Storage()

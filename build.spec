@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 
 block_cipher = None
 
@@ -6,7 +7,10 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[
+        ('RadioOne Logo.png', '.'),  # 包含Logo圖標
+        ('Radio One Big Logo.png', '.'),  # 包含Big Logo
+    ],
     hiddenimports=[
         'pystray._win32',
         'win32timezone',
@@ -46,5 +50,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,  # 如果有图标文件，可以指定路径
+    icon=None,  # 圖標會在運行時動態載入（使用RadioOne Logo.png）
 )

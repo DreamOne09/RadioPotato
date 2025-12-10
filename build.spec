@@ -3,7 +3,7 @@ import os
 
 block_cipher = None
 
-# 檢查圖標檔案
+# 檢查圖標檔案（優先使用ICO，確保Windows任務欄正確顯示）
 icon_file = None
 if os.path.exists('RadioOne Logo.ico'):
     icon_file = 'RadioOne Logo.ico'
@@ -48,10 +48,10 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,  # 禁用UPX壓縮，避免DLL載入問題
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,  # 隐藏控制台窗口
+    console=False,  # 隱藏控制台窗口
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
